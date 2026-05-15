@@ -105,9 +105,13 @@
   <div class="login-box">
     <div class="login-title">Admin Panel</div>
     <div class="login-sub">ENG Trainer — จัดการคลังบทเรียน</div>
-    <div class="field">
+    <div class="field" style="margin-bottom:0.75rem">
       <label>Admin Password</label>
       <input type="password" id="pw-input" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <div class="field">
+      <label>Gemini API Key</label>
+      <input type="password" id="gemini-input" placeholder="AIza..." autocomplete="off" />
       <div class="login-err" id="login-err"></div>
     </div>
     <button class="btn btn-primary" style="margin-top:1rem" onclick="doLogin()">เข้าสู่ระบบ</button>
@@ -176,27 +180,32 @@
 
 <script>
 const WORKER_URL = "https://young-star-889a.kotchasee-n.workers.dev";
-const PW_KEY = "eng_admin_pw";
-let adminPw = "", lessons = [];
+const LS_GEMINI = "eng_admin_gemini";
+let adminPw = "", geminiKey = "", lessons = [];
 
 // ── Auth ──────────────────────────────────────────────────────
 function doLogin() {
   const pw = document.getElementById("pw-input").value.trim();
-  if (!pw) return;
+  const gk = document.getElementById("gemini-input").value.trim();
+  if (!pw || !gk) { document.getElementById("login-err").textContent = "กรุณาใส่ให้ครบทั้งสองช่อง"; return; }
   adminPw = pw;
+  geminiKey = gk;
+  localStorage.setItem(LS_GEMINI, gk);
   document.getElementById("login-wall").classList.add("hidden");
   loadLessons();
 }
 function logout() {
-  adminPw = "";
+  adminPw = ""; geminiKey = "";
   document.getElementById("login-wall").classList.remove("hidden");
   document.getElementById("pw-input").value = "";
+  document.getElementById("gemini-input").value = "";
 }
-document.getElementById("pw-input").addEventListener("keydown", e => { if (e.key==="Enter") doLogin(); });
+document.getElementById("pw-input").addEventListener("keydown", e => { if (e.key==="Enter") document.getElementById("gemini-input").focus(); });
+document.getElementById("gemini-input").addEventListener("keydown", e => { if (e.key==="Enter") doLogin(); });
 
 // ── API ───────────────────────────────────────────────────────
 async function api(path, method="GET", body=null) {
-  const opts = { method, headers: { "Content-Type": "application/json", "X-Admin-Password": adminPw } };
+  const opts = { method, headers: { "Content-Type": "application/json", "X-Admin-Password": adminPw, "X-Gemini-Key": geminiKey } };
   if (body) opts.body = JSON.stringify(body);
   const res = await fetch(WORKER_URL + path, opts);
   const data = await res.json();
