@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ENG TRAINER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink:   #1a1714; --paper: #f5f0e8; --cream: #ede8dc;
+    --warm:  #c8a96e; --rust:  #b85c38; --sage:  #5a7a5c;
+    --muted: #8a8278; --line:  #d8d0c0; --radius: 2px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; line-height: 1.6; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"); pointer-events: none; z-index: 9999; opacity: 0.5; }
+  header { border-bottom: 1px solid var(--line); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; background: var(--paper); position: sticky; top: 0; z-index: 100; }
+  .logo { font-family: 'Instrument Serif', serif; font-size: 1.5rem; letter-spacing: -0.02em; display: flex; align-items: baseline; gap: 0.4rem; }
+  .logo span { color: var(--warm); font-style: italic; }
+  .stats-bar { display: flex; gap: 1.5rem; align-items: center; font-size: 0.78rem; color: var(--muted); font-weight: 500; }
+  .stat { display: flex; flex-direction: column; align-items: flex-end; }
+  .stat-num { font-size: 1.1rem; color: var(--ink); font-weight: 500; line-height: 1; }
+  main { max-width: 780px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .screen { display: none; }
+  .screen.active { display: block; animation: fadeUp 0.4s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  #screen-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; gap: 1.2rem; }
+  #screen-loading.active { display: flex; }
+  .spinner { width: 36px; height: 36px; border: 2px solid var(--line); border-top-color: var(--warm); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'Instrument Serif', serif; font-size: 1.1rem; color: var(--muted); font-style: italic; }
+  #screen-empty { text-align: center; padding: 5rem 2rem; }
+  #screen-empty.active { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 50vh; }
+  .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+  .empty-title { font-family: 'Instrument Serif', serif; font-size: 1.8rem; margin-bottom: 0.5rem; }
+  .empty-sub { color: var(--muted); max-width: 380px; }
+  #screen-lesson.active { display: block; }
+  .lesson-meta { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .badge { display: inline-flex; align-items: center; padding: 0.25rem 0.7rem; border: 1px solid var(--line); border-radius: var(--radius); font-size: 0.72rem; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; }
+  .badge-b1 { border-color: var(--sage); color: var(--sage); background: #5a7a5c12; }
+  .badge-b2 { border-color: var(--rust); color: var(--rust); background: #b85c3812; }
+  .badge-id  { color: var(--muted); border-color: var(--line); }
+  .lesson-title { font-family: 'Instrument Serif', serif; font-size: 2rem; line-height: 1.2; margin-bottom: 0.25rem; }
+  .lesson-date { font-size: 0.78rem; color: var(--muted); margin-bottom: 2rem; }
+  .section-label { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .article-block { background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.75rem; font-family: 'Instrument Serif', serif; font-size: 1.1rem; line-height: 1.85; margin-bottom: 2rem; position: relative; }
+  .article-block::before { content: '"'; position: absolute; top: 0.5rem; left: 1rem; font-size: 4rem; color: var(--line); font-family: 'Instrument Serif', serif; line-height: 1; }
+  .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 0.75rem; margin-bottom: 2rem; }
+  .vocab-card { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.25rem; background: white; transition: border-color 0.2s, transform 0.2s; }
+  .vocab-card:hover { border-color: var(--warm); transform: translateY(-1px); }
+  .vocab-word { font-family: 'Instrument Serif', serif; font-size: 1.15rem; }
+  .vocab-meaning { font-size: 0.82rem; color: var(--rust); font-weight: 500; margin: 0.2rem 0 0.4rem; }
+  .vocab-example { font-size: 0.82rem; color: var(--muted); font-style: italic; line-height: 1.4; }
+  .questions-list { display: flex; flex-direction: column; gap: 1.25rem; margin-bottom: 2rem; }
+  .q-block { border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: white; }
+  .q-header { padding: 1rem 1.25rem 0.5rem; display: flex; gap: 0.75rem; align-items: flex-start; }
+  .q-num { min-width: 1.6rem; height: 1.6rem; border: 1px solid var(--line); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 500; color: var(--muted); flex-shrink: 0; margin-top: 0.05rem; }
+  .q-text { font-size: 0.95rem; line-height: 1.5; }
+  .q-options { padding: 0.5rem 1.25rem 1rem 1.25rem; }
+  .q-option { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; margin-bottom: 0.4rem; border: 1px solid var(--line); border-radius: var(--radius); cursor: pointer; transition: all 0.15s; font-size: 0.88rem; background: var(--paper); user-select: none; }
+  .q-option:hover { border-color: var(--warm); background: #c8a96e0d; }
+  .q-option.selected { border-color: var(--warm); background: #c8a96e15; }
+  .q-option.correct  { border-color: var(--sage); background: #5a7a5c15; color: var(--sage); }
+  .q-option.wrong    { border-color: var(--rust); background: #b85c3810; color: var(--rust); opacity: 0.8; }
+  .opt-key { min-width: 1.3rem; height: 1.3rem; border-radius: 2px; border: 1px solid currentColor; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; flex-shrink: 0; opacity: 0.6; }
+  .q-explanation { padding: 0.75rem 1.25rem; border-top: 1px solid var(--line); background: var(--cream); font-size: 0.82rem; color: var(--muted); display: none; }
+  .q-explanation.show { display: block; }
+  .q-explanation strong { color: var(--sage); }
+  .action-bar { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+  .btn { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.7rem 1.5rem; border: 1px solid var(--ink); border-radius: var(--radius); background: var(--ink); color: var(--paper); font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 500; cursor: pointer; transition: all 0.15s; letter-spacing: 0.02em; }
+  .btn:hover { background: #2e2a26; }
+  .btn-outline { background: transparent; color: var(--ink); }
+  .btn-outline:hover { background: var(--cream); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .score-card { display: none; background: var(--cream); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; text-align: center; animation: fadeUp 0.4s ease; }
+  .score-card.show { display: block; }
+  .score-big { font-family: 'Instrument Serif', serif; font-size: 3.5rem; line-height: 1; }
+  .score-label { font-size: 0.8rem; color: var(--muted); margin-top: 0.25rem; }
+  .score-comment { font-family: 'Instrument Serif', serif; font-size: 1.1rem; font-style: italic; margin-top: 0.75rem; color: var(--rust); }
+  .progress-row { display: flex; align-items: center; gap: 0.75rem; font-size: 0.78rem; color: var(--muted); }
+  .progress-track { flex: 1; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--warm); border-radius: 2px; transition: width 0.6s ease; }
+  footer { text-align: center; padding: 2rem; font-size: 0.75rem; color: var(--muted); border-top: 1px solid var(--line); margin-top: 3rem; }
+  @media (max-width: 600px) { header { padding: 1rem; } .stats-bar { gap: 1rem; } main { padding: 1.5rem 1rem 3rem; } .lesson-title { font-size: 1.6rem; } .vocab-grid { grid-template-columns: 1fr; } .article-block { padding: 1.25rem; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">ENG <span>Trainer</span></div>
+  <div class="stats-bar">
+    <div class="stat"><span class="stat-num" id="hdr-done">—</span><span>ทำแล้ว</span></div>
+    <div class="stat"><span class="stat-num" id="hdr-total">—</span><span>บทเรียน</span></div>
+    <div class="stat"><span class="stat-num" id="hdr-avg">—</span><span>คะแนนเฉลี่ย</span></div>
+  </div>
+</header>
+
+<main>
+  <div id="screen-loading" class="screen active">
+    <div class="spinner"></div>
+    <p class="loading-text">กำลังโหลดบทเรียน…</p>
+  </div>
+
+  <div id="screen-empty" class="screen">
+    <div class="empty-icon">🎉</div>
+    <h2 class="empty-title">ทำครบทุกบทเรียนแล้ว!</h2>
+    <p class="empty-sub">คุณผ่านบทเรียนทั้งหมดในคลังแล้ว รอ Admin เพิ่มบทเรียนใหม่</p>
+  </div>
+
+  <div id="screen-lesson" class="screen">
+    <div class="progress-row" style="margin-bottom:1.5rem">
+      <span id="prog-text">0 / 0</span>
+      <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div class="lesson-meta">
+      <span class="badge badge-id" id="lesson-id-badge">—</span>
+      <span class="badge" id="lesson-diff-badge">—</span>
+    </div>
+    <h1 class="lesson-title" id="lesson-topic">—</h1>
+    <p class="lesson-date" id="lesson-date">—</p>
+    <div class="section-label">Article</div>
+    <div class="article-block" id="lesson-article">—</div>
+    <div class="section-label">Vocabulary</div>
+    <div class="vocab-grid" id="vocab-grid"></div>
+    <div class="section-label">Questions</div>
+    <div class="questions-list" id="questions-list"></div>
+    <div class="score-card" id="score-card">
+      <div class="score-big" id="score-num">—</div>
+      <div class="score-label">จาก 4 ข้อ</div>
+      <div class="score-comment" id="score-comment">—</div>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-outline" id="btn-skip">ข้ามบทเรียนนี้</button>
+      <div style="display:flex;gap:0.75rem">
+        <button class="btn" id="btn-submit">ตรวจคำตอบ</button>
+        <button class="btn" id="btn-next" style="display:none">บทเรียนถัดไป →</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>ENG Trainer · ฝึกภาษาอังกฤษทุกวัน</footer>
+
+<script>
+const WORKER_URL = "https://your-worker.your-subdomain.workers.dev";
+const LS_KEY = "eng_trainer_v1";
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || { completed: {}, scores: [] }; }
+  catch { return { completed: {}, scores: [] }; }
+}
+function saveState(s) { localStorage.setItem(LS_KEY, JSON.stringify(s)); }
+
+const screens = {
+  loading: document.getElementById("screen-loading"),
+  empty:   document.getElementById("screen-empty"),
+  lesson:  document.getElementById("screen-lesson"),
+};
+function showScreen(name) {
+  Object.values(screens).forEach(s => s.classList.remove("active"));
+  screens[name].classList.add("active");
+}
+
+let allLessons = [], currentLesson = null, answered = {}, submitted = false, userState = loadState();
+
+async function init() {
+  showScreen("loading");
+  try {
+    const res = await fetch(`${WORKER_URL}/lessons`);
+    if (!res.ok) throw new Error("ไม่สามารถโหลดบทเรียนได้");
+    allLessons = await res.json();
+  } catch (e) {
+    alert("⚠️ " + e.message + "\n\nตรวจสอบ WORKER_URL ใน index.html");
+    return;
+  }
+  updateHeader();
+  pickLesson();
+}
+
+function updateHeader() {
+  const done  = Object.keys(userState.completed).length;
+  const total = allLessons.length;
+  const scores = userState.scores || [];
+  const avg = scores.length ? (scores.reduce((a,b)=>a+b,0)/scores.length).toFixed(1) : "—";
+  document.getElementById("hdr-done").textContent  = done;
+  document.getElementById("hdr-total").textContent = total;
+  document.getElementById("hdr-avg").textContent   = avg;
+}
+
+function pickLesson() {
+  const pending = allLessons.filter(l => !userState.completed[l.id]);
+  if (!pending.length) { showScreen("empty"); return; }
+  const meta = pending[Math.floor(Math.random() * pending.length)];
+  loadLesson(meta.id);
+}
+
+async function loadLesson(id) {
+  showScreen("loading");
+  try {
+    const res = await fetch(`${WORKER_URL}/lessons/${id}`);
+    if (!res.ok) throw new Error("โหลดบทเรียนไม่ได้");
+    currentLesson = await res.json();
+  } catch (e) { alert("⚠️ " + e.message); return; }
+  answered = {}; submitted = false;
+  renderLesson();
+}
+
+function renderLesson() {
+  const l = currentLesson;
+  showScreen("lesson");
+  document.getElementById("lesson-id-badge").textContent = l.id;
+  const db = document.getElementById("lesson-diff-badge");
+  db.textContent = l.difficulty || "B1";
+  db.className = `badge badge-${(l.difficulty||"b1").toLowerCase()}`;
+  document.getElementById("lesson-topic").textContent = l.topic;
+  document.getElementById("lesson-date").textContent =
+    l.created_at ? "สร้างเมื่อ " + new Date(l.created_at).toLocaleDateString("th-TH") : "";
+  const done = Object.keys(userState.completed).length;
+  const total = allLessons.length;
+  document.getElementById("prog-text").textContent = `${done} / ${total}`;
+  document.getElementById("prog-fill").style.width = total ? (done/total*100).toFixed(0)+"%" : "0%";
+  document.getElementById("lesson-article").textContent = l.article;
+
+  document.getElementById("vocab-grid").innerHTML = (l.vocabulary||[]).map(v=>`
+    <div class="vocab-card">
+      <div class="vocab-word">${v.word}</div>
+      <div class="vocab-meaning">${v.meaning}</div>
+      <div class="vocab-example">"${v.example}"</div>
+    </div>`).join("");
+
+  document.getElementById("questions-list").innerHTML = (l.questions||[]).map((q,i)=>`
+    <div class="q-block" id="q-block-${i}">
+      <div class="q-header"><div class="q-num">${i+1}</div><div class="q-text">${q.question}</div></div>
+      <div class="q-options">
+        ${["A","B","C","D"].map(k=>`
+          <div class="q-option" id="opt-${i}-${k}" onclick="selectOption(${i},'${k}')">
+            <div class="opt-key">${k}</div><span>${q.options[k]}</span>
+          </div>`).join("")}
+      </div>
+      <div class="q-explanation" id="q-exp-${i}"><strong>เฉลย: ${q.answer}</strong> — ${q.explanation}</div>
+    </div>`).join("");
+
+  document.getElementById("score-card").classList.remove("show");
+  document.getElementById("btn-submit").style.display = "";
+  document.getElementById("btn-next").style.display = "none";
+  document.getElementById("btn-submit").disabled = true;
+}
+
+function selectOption(qIndex, key) {
+  if (submitted) return;
+  answered[qIndex] = key;
+  ["A","B","C","D"].forEach(k => {
+    document.getElementById(`opt-${qIndex}-${k}`).classList.toggle("selected", k===key);
+  });
+  document.getElementById("btn-submit").disabled =
+    Object.keys(answered).length < (currentLesson.questions||[]).length;
+}
+
+document.getElementById("btn-submit").addEventListener("click", () => {
+  if (submitted) return;
+  submitted = true;
+  const qs = currentLesson.questions || [];
+  let score = 0;
+  qs.forEach((q,i) => {
+    const chosen = answered[i], correct = q.answer;
+    ["A","B","C","D"].forEach(k => {
+      const el = document.getElementById(`opt-${i}-${k}`);
+      el.style.cursor = "default";
+      if (k===correct) el.classList.add("correct");
+      else if (k===chosen && k!==correct) el.classList.add("wrong");
+    });
+    document.getElementById(`q-exp-${i}`).classList.add("show");
+    if (chosen===correct) score++;
+  });
+  const comments = ["ลองอีกครั้งนะ 💪","พอใช้ได้ 👍","ดีมาก! 🌟","เกือบสมบูรณ์ ✨","เพอร์เฟกต์! 🏆"];
+  document.getElementById("score-num").textContent = `${score} / ${qs.length}`;
+  document.getElementById("score-comment").textContent = comments[score]||"";
+  document.getElementById("score-card").classList.add("show");
+  userState.completed[currentLesson.id] = true;
+  userState.scores = [...(userState.scores||[]), score];
+  saveState(userState);
+  updateHeader();
+  document.getElementById("btn-submit").style.display = "none";
+  document.getElementById("btn-next").style.display = "";
+});
+
+document.getElementById("btn-next").addEventListener("click", pickLesson);
+
+document.getElementById("btn-skip").addEventListener("click", () => {
+  const pending = allLessons.filter(l => !userState.completed[l.id] && l.id !== currentLesson?.id);
+  if (!pending.length) { alert("ไม่มีบทเรียนอื่นให้ข้ามแล้ว"); return; }
+  loadLesson(pending[Math.floor(Math.random()*pending.length)].id);
+});
+
+init();
+</script>
+</body>
+</html>
