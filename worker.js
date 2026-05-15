@@ -11,7 +11,7 @@
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-Admin-Password",
+  "Access-Control-Allow-Headers": "Content-Type, X-Admin-Password, X-Gemini-Key",
 };
 
 function json(data, status = 200) {
@@ -31,7 +31,9 @@ function checkAdmin(request, env) {
 }
 
 // ── Generate lesson via Gemini ────────────────────────────────
-async function generateLesson(topic, difficulty, env) {
+async function generateLesson(topic, difficulty, env, request) {
+  const geminiKey = request.headers.get("X-Gemini-Key") || env.GEMINI_API_KEY;
+  if (!geminiKey) throw new Error("ไม่มี Gemini API Key — กรุณาใส่ key ในหน้า login");
   const difficultyGuide =
     difficulty === "B2"
       ? "advanced vocabulary, complex sentence structures, abstract topics"
@@ -172,7 +174,7 @@ export default {
 
       let lessonData;
       try {
-        lessonData = await generateLesson(topic, difficulty, env);
+        lessonData = await generateLesson(topic, difficulty, env, request);
       } catch (e) {
         return err(`Generation failed: ${e.message}`, 500);
       }
