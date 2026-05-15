@@ -110,8 +110,8 @@
       <input type="password" id="pw-input" placeholder="••••••••" autocomplete="current-password" />
     </div>
     <div class="field">
-      <label>Gemini API Key</label>
-      <input type="password" id="gemini-input" placeholder="AIza..." autocomplete="off" />
+      <label>Claude API Key</label>
+      <input type="password" id="gemini-input" placeholder="sk-ant-..." autocomplete="off" />
       <div class="login-err" id="login-err"></div>
     </div>
     <button class="btn btn-primary" style="margin-top:1rem" onclick="doLogin()">เข้าสู่ระบบ</button>
@@ -192,6 +192,8 @@ function doLogin() {
   geminiKey = gk;
   localStorage.setItem(LS_GEMINI, gk);
   document.getElementById("login-wall").classList.add("hidden");
+  document.getElementById("pw-input").value = "";
+  document.getElementById("gemini-input").value = "";
   loadLessons();
 }
 function logout() {
@@ -202,6 +204,7 @@ function logout() {
 }
 document.getElementById("pw-input").addEventListener("keydown", e => { if (e.key==="Enter") document.getElementById("gemini-input").focus(); });
 document.getElementById("gemini-input").addEventListener("keydown", e => { if (e.key==="Enter") doLogin(); });
+(function(){ const saved = localStorage.getItem(LS_GEMINI); if (saved) document.getElementById("gemini-input").value = saved; })();
 
 // ── API ───────────────────────────────────────────────────────
 async function api(path, method="GET", body=null) {
